@@ -30,7 +30,7 @@ public class inicio {
             System.out.println("1.- Retiro de efectivo");
             System.out.println("2.- Depósito de efectivo");
             System.out.println("3.- Pago de tarjeta de crédito");
-            System.out.println("4.- Pago de servicios");
+            System.out.println("4.- Pago de servicios (efectivo)");
             System.out.println("5.- Consulta de saldo/movimientos");
             System.out.println("0.- Salir");
             movimiento = sc.nextInt();

@@ -56,12 +56,19 @@ public class validaciones {
                     rs = pst.executeQuery();
                     if (rs.next()) {
                         //System.out.println("El número de tarjeta ingresado si está registrado en la base de datos.");
+                        if(isDebit(num_tar)){
+                            return true;
+                        }else{
+                            System.out.println("La tarjeta bancaria debe de ser únicamente de débito para realizar operaciones.");
+                            return false;
+                        }
                     } else {
                         System.out.println("El número de tarjeta ingresado no está registrado en la base de datos.");
                         return false;
                     }
                 } catch (SQLException ex) {
                     Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, ex);
+                    return false;
                 }
             }
         } else {
@@ -69,7 +76,7 @@ public class validaciones {
             return false;
         }
 
-        return true;
+        //return true;
     }
 
     boolean ref_serv(String ref) {
