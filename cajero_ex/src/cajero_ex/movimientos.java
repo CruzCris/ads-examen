@@ -50,7 +50,7 @@ public class movimientos {
             } else {
                 System.out.print("Su saldo actual es de: $" + saldo_ac + "\n");
                 do {
-                    System.out.print("Ingrese la cantidad a retirar (solo múltiplos de 100 y menor a 2000): ");
+                    System.out.print("Ingrese la cantidad a retirar (solo múltiplos de 100 y menor a $2000): $");
                     retirar = sc.nextDouble();
                     sc.nextLine();
                     flag = v.retiro(retirar);
@@ -103,6 +103,90 @@ public class movimientos {
     }
 
     boolean deposito(String num_tar) {
+        double saldo_ac = 0;
+        double depositar;
+        boolean flag = false;
+        String pin;
+
+        try {
+            // Solicitar el PIN del usuario y validarlo
+            do {
+                System.out.print("Para continuar con la operación, ingrese su pin: ");
+                pin = sc.nextLine();
+                flag = v.validarPin(pin, num_tar);
+            } while (!flag);
+            flag = false;
+
+            // Conectar a la base de datos
+            Connection cx = connection.connect();
+
+            // Obtener el saldo actual de la tarjeta
+            String sql = "select sald_deb from debito where num_tar = ?";
+            PreparedStatement pst = cx.prepareStatement(sql);
+            pst.setString(1, num_tar);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                saldo_ac = rs.getDouble("sald_deb");
+            }
+
+            // Mostrar el saldo actual
+            System.out.print("Su saldo actual es de: $" + saldo_ac + "\n");
+
+            // Solicitar la cantidad a depositar
+            do{
+                System.out.print("Ingrese la cantidad a depositar (solo múltiplos de 100 y menor a $2000): $");
+                depositar = sc.nextDouble();
+                sc.nextLine();
+                flag = v.deposito(depositar);
+            }while(flag == false);
+            
+
+            // Actualizar el saldo de la tarjeta en la base de datos
+            sql = "update debito set sald_deb = ? where num_tar = ?";
+            pst = cx.prepareStatement(sql);
+            pst.setDouble(1, saldo_ac + depositar);
+            pst.setString(2, num_tar);
+            pst.executeUpdate();
+
+            System.out.println("Favor de depositar su dinero...");
+            try {
+                Thread.sleep(4000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Actualizar el fondo de la terminal
+            sql = "select fond_term from terminal";
+            pst = cx.prepareStatement(sql);
+            rs = pst.executeQuery();
+            double dinero = 0;
+            if (rs.next()) {
+                dinero = rs.getDouble("fond_term");
+            }
+
+            sql = "update terminal set fond_term = ?";
+            pst = cx.prepareStatement(sql);
+            pst.setDouble(1, dinero + depositar);
+            pst.executeUpdate();
+
+            // Registrar el depósito en la tabla de movimientos
+            LocalDateTime fechaActual = LocalDateTime.now();
+            String idMov = f.generarCadena();
+            sql = "insert into movimiento (id_mov,tipo_mov,mont_mov,fch_mov,num_tar) values (?,?,?,?,?)";
+            pst = cx.prepareStatement(sql);
+            pst.setString(1, idMov);
+            pst.setString(2, "d"); // 'd' para depósito
+            pst.setDouble(3, depositar);
+            pst.setTimestamp(4, Timestamp.valueOf(fechaActual));
+            pst.setString(5, num_tar);
+            pst.executeUpdate();
+
+            System.out.println("Se registró el depósito exitosamente.");
+
+        } catch (SQLException e) {
+            Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, e);
+            return false;
+        }
         return true;
     }
 
@@ -139,13 +223,13 @@ public class movimientos {
             } while (flag == false);
             //System.out.println("");
             do {
-                System.out.print("Ingrese el monto a pagar (únicamente múltiplos de 100): ");
+                System.out.print("Ingrese el monto a pagar (únicamente múltiplos de 100): $");
                 monto = sc.nextLine();
                 flag = v.monto(monto);
             } while (flag == false);
             //System.out.println("");
             do {
-                System.out.print("¿Cuánto dinero va a ingresar? (múltiplos de 100): ");
+                System.out.print("¿Cuánto dinero va a ingresar? (múltiplos de 100): $");
                 pago = sc.nextLine();
                 flag = v.pago(pago, monto);
             } while (flag == false);

@@ -56,9 +56,9 @@ public class validaciones {
                     rs = pst.executeQuery();
                     if (rs.next()) {
                         //System.out.println("El número de tarjeta ingresado si está registrado en la base de datos.");
-                        if(isDebit(num_tar)){
+                        if (isDebit(num_tar)) {
                             return true;
-                        }else{
+                        } else {
                             System.out.println("La tarjeta bancaria debe de ser únicamente de débito para realizar operaciones.");
                             return false;
                         }
@@ -110,13 +110,27 @@ public class validaciones {
         }
     }
 
+    boolean deposito(double monto) {
+        if (monto % 100 != 0) {
+            System.out.println("La cantidad a depositar debe ser múltiplo de 100.");
+            return false;
+        } else {
+            if(monto > 2000){
+                System.out.println("La cantidad a depositar debe ser menor a $2000");
+                return false;
+            }else{
+                return true;
+            }
+        }
+    }
+
     boolean retiro(double cant) {
         if (cant % 100 != 0) {
             System.out.println("La cantidad a retirar debe ser múltiplo de 100.");
             return false;
         } else {
             if (cant > 2000) {
-                System.out.println("La cantidad debe ser menor a 2000");
+                System.out.println("La cantidad debe ser menor a $2000");
                 return false;
             } else {
                 return true;
@@ -158,7 +172,7 @@ public class validaciones {
                 System.out.println("El pin consta de únicamente 4 dígitos.");
                 return false;
             } else {
-                try{
+                try {
                     Connection cx = connection.connect();
                     String sql = "select * from tarjeta where num_tar = ? and pin_tar = ?";
                     PreparedStatement pst = cx.prepareStatement(sql);
@@ -171,7 +185,7 @@ public class validaciones {
                         System.out.println("El pin no coincide con la tarjeta.");
                         return false;
                     }
-                }catch(SQLException e){
+                } catch (SQLException e) {
                     Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, e);
                     return false;
                 }
