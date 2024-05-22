@@ -105,7 +105,6 @@ public class movimientos {
     boolean deposito(String num_tar) {
         double saldo_ac = 0;
         double depositar;
-        boolean flag = false;
         String pin;
 
         try {
@@ -133,13 +132,12 @@ public class movimientos {
             System.out.print("Su saldo actual es de: $" + saldo_ac + "\n");
 
             // Solicitar la cantidad a depositar
-            do{
+            do {
                 System.out.print("Ingrese la cantidad a depositar (solo múltiplos de 100 y menor a $2000): $");
                 depositar = sc.nextDouble();
                 sc.nextLine();
                 flag = v.deposito(depositar);
-            }while(flag == false);
-            
+            } while (flag == false);
 
             // Actualizar el saldo de la tarjeta en la base de datos
             sql = "update debito set sald_deb = ? where num_tar = ?";
@@ -181,17 +179,118 @@ public class movimientos {
             pst.setString(5, num_tar);
             pst.executeUpdate();
 
+            // Obtener el saldo actual de la tarjeta
+            sql = "select sald_deb from debito where num_tar = ?";
+            pst = cx.prepareStatement(sql);
+            pst.setString(1, num_tar);
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                saldo_ac = rs.getDouble("sald_deb");
+            }
+
+            // Mostrar el saldo actual
+            System.out.print("Su saldo actual es de: $" + saldo_ac + "\n");
+
             System.out.println("Se registró el depósito exitosamente.");
+            return true;
+        } catch (SQLException e) {
+            Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, e);
+            return false;
+        }
+    }
+
+    boolean pago_tar(String num_tar) {
+        String tar_cre = "";
+        int id_cre = 0;
+        double saldo_ac = 0, pago = 0;
+
+        // Validamos que la tarjeta de crédito a pagar este registrada en la base de datos
+        do {
+            System.out.print("Ingresa el número de la tarjeta de crédito que deseas pagar: ");
+            tar_cre = sc.nextLine();
+            flag = v.isCredit(tar_cre);
+        } while (flag == false);
+
+        try {
+            // Recuperamos el id de la tarjeta de crédito
+            Connection cx = connection.connect();
+            String sql = "select id_cred from credito where num_tar = ?";
+            PreparedStatement pst = cx.prepareStatement(sql);
+            pst.setString(1, tar_cre);
+            ResultSet rs = pst.executeQuery();
+            if (rs.next()) {
+                id_cre = rs.getInt("id_cred");
+            }
+
+            // Mostramos el saldo actual de la tarjeta de débito
+            sql = "select sald_deb from debito where num_tar = ?";
+            pst = cx.prepareStatement(sql);
+            pst.setString(1, num_tar);
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                saldo_ac = rs.getDouble("sald_deb");
+            }
+            System.out.print("Su saldo actual es de: $" + saldo_ac + "\n");
+
+            // Preguntamos cuánto se desea pagar en la tarjeta de crédito
+            System.out.println("Ingrese la cantidad a pagar: $");
+            pago = sc.nextDouble();
+
+            // Validamos que si se pueda pagar esa cantidad
+            if (saldo_ac < pago) {
+                System.out.println("No puedes pagar una cantidad de dinero mayor a la almacenada en tu cuenta.");
+                return false;
+            } else {
+                // Validamos el PIN para seguir con la operación
+                do {
+                    System.out.print("Para continuar con la operación, ingrese su pin: ");
+                    pin = sc.nextLine();
+                    flag = v.validarPin(pin, num_tar);
+                } while (!flag);
+
+                // Realizamos el pago a la tarjeta de crédito
+                sql = "update credito set saldo_cred = saldo_cred - ? where id_cred = ?";
+                pst = cx.prepareStatement(sql);
+                pst.setDouble(1, pago);
+                pst.setInt(2, id_cre);
+
+                // Acutualizamos el saldo de la tarjeta de débito
+                sql = "update debito set sald_deb = ? where num_tar = ?";
+                pst = cx.prepareStatement(sql);
+                pst.setDouble(1, saldo_ac - pago);
+                pst.setString(2, num_tar);
+                pst.executeUpdate();
+
+                System.out.println("Se actualizó el saldo de tu tarjeta de débito.");
+
+                // Generamos el reporte del movimiento en la base de datos
+                LocalDateTime fechaActual = LocalDateTime.now();
+                String idMov = f.generarCadena();
+                sql = "insert into movimiento (id_mov,tipo_mov,mont_mov,fch_mov,num_tar) values (?,?,?,?,?)";
+                pst = cx.prepareStatement(sql);
+                pst.setString(1, idMov);
+                pst.setString(2, "p"); // 'p' para pago de tarjeta de crédito
+                pst.setDouble(3, pago);
+                pst.setTimestamp(4, Timestamp.valueOf(fechaActual));
+                pst.setString(5, num_tar);
+                pst.executeUpdate();
+
+                // Generamos el reporte del movimiento en el gestor de tarjetas de crédito
+                sql = "insert into pag_credito (id_mov) values (?)";
+                pst = cx.prepareStatement(sql);
+                pst.setString(1, idMov);
+                pst.executeUpdate();
+
+                System.out.println("Se realizó correctamente el pago a la tarjeta de crédito indicada.");
+
+                return true;
+            }
 
         } catch (SQLException e) {
             Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, e);
             return false;
         }
-        return true;
-    }
 
-    boolean pago_tar(String num_tar) {
-        return true;
     }
 
     boolean pago_servicio(String num_tar) {
@@ -356,33 +455,33 @@ public class movimientos {
         String idmov;
         String tipo;
         Date fchmov;
-        String adicional="";
-        String tarAdd="****************";
-        
+        String adicional = "";
+        String tarAdd = "****************";
+
         DecimalFormat dineros = new DecimalFormat("#0.00");
-        
-        try{
+
+        try {
             Connection cx = connection.connect();
             String sql1 = "select * from movimiento where num_tar = ?";
             PreparedStatement pst = cx.prepareStatement(sql1);
             pst.setString(1, num_tar);
             ResultSet rs = pst.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 idmov = rs.getString("id_mov");
                 tipo = rs.getString("tipo_mov");
                 fchmov = rs.getDate("fch_mov");
-                System.out.print(idmov+" "+fchmov+"");
-                
-                switch(tipo){
+                System.out.print(idmov + " " + fchmov + "");
+
+                switch (tipo) {
                     case "s"://pago de servicio
                         System.out.print("\tpago del servicio \n\t-$");
-                        sql1 ="select nom_serv, ref_pg from movimiento natural join pag_servicio natural join servicio where id_mov= ?";
+                        sql1 = "select nom_serv, ref_pg from movimiento natural join pag_servicio natural join servicio where id_mov= ?";
                         pst = cx.prepareStatement(sql1);
                         pst.setString(1, idmov);
                         ResultSet rs2 = pst.executeQuery();
-                        while(rs2.next()){
+                        while (rs2.next()) {
                             adicional = rs2.getString("nom_serv");
-                            adicional = adicional+" "+rs2.getString("ref_pg");
+                            adicional = adicional + " " + rs2.getString("ref_pg");
                         }
                         break;
                     case "t"://t pago de tarjeta 
@@ -391,11 +490,11 @@ public class movimientos {
                         pst = cx.prepareStatement(sql1);
                         pst.setString(1, idmov);
                         ResultSet rst = pst.executeQuery();
-                        while(rst.next()){
+                        while (rst.next()) {
                             tarAdd = rst.getString("num_tar");
-                            adicional ="\t****"+ tarAdd.substring(tarAdd.length() - 4);
+                            adicional = "\t****" + tarAdd.substring(tarAdd.length() - 4);
                             LocalDate fchs = rst.getDate("fchco_cc").toLocalDate();
-                            adicional = adicional+" "+fchs.getMonth()+"/"+fchs.getYear();
+                            adicional = adicional + " " + fchs.getMonth() + "/" + fchs.getYear();
                         }
                         break;
                     case "d"://d deposito
@@ -404,9 +503,9 @@ public class movimientos {
                         pst = cx.prepareStatement(sql1);
                         pst.setString(1, idmov);
                         ResultSet rsd = pst.executeQuery();
-                        while(rsd.next()){
+                        while (rsd.next()) {
                             tarAdd = rsd.getString("num_tar");
-                            adicional = "****"+ tarAdd.substring(tarAdd.length() - 4);
+                            adicional = "****" + tarAdd.substring(tarAdd.length() - 4);
                         }
                         break;
                     case "e"://e recibo deposito
@@ -415,62 +514,62 @@ public class movimientos {
                         pst = cx.prepareStatement(sql1);
                         pst.setString(1, idmov);
                         ResultSet rse = pst.executeQuery();
-                        while(rse.next()){
+                        while (rse.next()) {
                             tarAdd = rse.getString("num_tar");
-                            adicional = (tarAdd!=null)? "****"+ tarAdd.substring(tarAdd.length() - 4):"cajero";
-                        }                        
+                            adicional = (tarAdd != null) ? "****" + tarAdd.substring(tarAdd.length() - 4) : "cajero";
+                        }
                         break;
                     case "r"://r retiro 
                         System.out.println("\tRetiro\n\t-$");
                         adicional = "cajero único";
                         break;
-                        
+
                 }
                 System.out.print(dineros.format(rs.getDouble("mont_mov")));
-                System.out.print("\t"+adicional);
-                System.out.println("\n");                
+                System.out.print("\t" + adicional);
+                System.out.println("\n");
             }
-            
+
             sql1 = "select tip_tar from tarjeta where num_tar = ?";
             pst = cx.prepareStatement(sql1);
             pst.setString(1, num_tar);
             rs = pst.executeQuery();
-            while(rs.next()){
+            while (rs.next()) {
                 String tipot = rs.getString("tip_tar");
                 if (tipot.equalsIgnoreCase("d")) {
                     String sql2 = "select sald_deb from tarjeta natural join debito where num_tar = ?";
                     pst = cx.prepareStatement(sql2);
                     pst.setString(1, num_tar);
                     ResultSet rs3 = pst.executeQuery();
-                    while(rs3.next()){
+                    while (rs3.next()) {
                         double saldo = rs3.getDouble("sald_deb");
                         System.out.print("\nSaldo actual:\t $");
                         System.out.println(dineros.format(saldo));
                     }
-                }else if(tipot.equalsIgnoreCase("c")){
+                } else if (tipot.equalsIgnoreCase("c")) {
                     String sql2 = "select crds_cred, sald_cred, fchco_cc, min_cc from credito natural join tarjeta natural join cred_corte where num_tar = ?";
                     pst = cx.prepareStatement(sql2);
                     pst.setString(1, num_tar);
                     ResultSet rs3 = pst.executeQuery();
-                    while(rs3.next()){
+                    while (rs3.next()) {
                         double creditoDis = rs3.getDouble("crds_cred");
                         double saldo = rs3.getDouble("sald_cred");
                         double saldDis = creditoDis - saldo;
                         LocalDate fchCort = rs3.getDate("fchco_cc").toLocalDate();
                         double minPag = rs3.getDouble("min_cc");
-                        
+
                         System.out.print("\n\t Crédito disponible: $");
                         System.out.print(dineros.format(saldDis));
                         System.out.print("\n\t Mínimo a pagar: ");
                         System.out.print(minPag);
                         System.out.print("\tFecha de corte: ");
-                        System.out.print(fchCort.getMonth()+"/"+fchCort.getYear());
+                        System.out.print(fchCort.getMonth() + "/" + fchCort.getYear());
                         System.out.println("\n");
                     }
                 }
             }
-            
-        }catch(SQLException ex){
+
+        } catch (SQLException ex) {
             Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, ex);
         }
         return true;

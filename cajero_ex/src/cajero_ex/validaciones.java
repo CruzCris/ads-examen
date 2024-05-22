@@ -39,6 +39,29 @@ public class validaciones {
         }
         return flag;
     }
+    
+    boolean isCredit(String num_tar) {
+        Connection cx = null;
+        PreparedStatement pst = null;
+        ResultSet rs = null;
+        boolean flag = false;
+        try {
+            cx = connection.connect();
+            pst = cx.prepareStatement("select * from credito where num_tar='" + num_tar + "'");
+            rs = pst.executeQuery();
+            if (rs.next()) {
+                // Si es de credito
+                flag = true;
+            } else {
+                // No es de credito
+                System.out.println("El número de tarjeta ingresado no hace referencia a una tarjeta de crédito.");
+                flag = false;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(validaciones.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return flag;
+    }
 
     boolean num_tarjeta(String num_tar) {
         if (isNumeric(num_tar)) {

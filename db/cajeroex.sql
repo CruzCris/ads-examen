@@ -19,34 +19,6 @@ use cajero_examen;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `cred_corte`
---
-
-DROP TABLE IF EXISTS `cred_corte`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `cred_corte` (
-  `id_cc` int NOT NULL AUTO_INCREMENT,
-  `id_cred` int NOT NULL,
-  `fchco_cc` date NOT NULL,
-  `min_cc` decimal(10,2) NOT NULL,
-  `pagd_cc` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`id_cc`),
-  KEY `id_cred_cc` (`id_cred`),
-  CONSTRAINT `id_cred_cc` FOREIGN KEY (`id_cred`) REFERENCES `credito` (`id_cred`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `cred_corte`
---
-
-LOCK TABLES `cred_corte` WRITE;
-/*!40000 ALTER TABLE `cred_corte` DISABLE KEYS */;
-/*!40000 ALTER TABLE `cred_corte` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `credito`
 --
 
@@ -55,9 +27,7 @@ DROP TABLE IF EXISTS `credito`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `credito` (
   `id_cred` int NOT NULL AUTO_INCREMENT,
-  `crds_cred` decimal(10,2) NOT NULL,
-  `sald_cred` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `pgmin_cred` decimal(10,2) NOT NULL,
+  `sald_cred` decimal(10,2) NOT NULL,
   `num_tar` varchar(16) NOT NULL,
   PRIMARY KEY (`id_cred`),
   UNIQUE KEY `num_tar` (`num_tar`),
@@ -360,6 +330,10 @@ insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('09876
 insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('3434343434343434','6815','2025-01-10','c',1);
 insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('1212121212121212','7890','2028-02-01','d',3);
 select * from tarjeta where num_tar='1234567890123456' and pin_tar=5678;
+
+insert into credito (sald_cred,num_tar) values (1000,'0987654321098765');
+insert into credito (sald_cred,num_tar) values (2500,'3434343434343434');
+select * from credito;
 
 insert into debito (sald_deb,num_tar) values (238000,'1234567890123456');
 insert into debito (sald_deb,num_tar) values (120000,'1212121212121212');
