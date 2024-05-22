@@ -29,6 +29,12 @@ public class movimientos {
         if (v.isDebit(num_tar)) {
             // mostramos el saldo que tiene en la tarjeta
             try {
+                do {
+                    System.out.print("Para continuar con la operación, ingrese su pin: ");
+                    pin = sc.nextLine();
+                    flag = v.validarPin(pin, num_tar);
+                } while (flag == false);
+                flag = false;
                 Connection cx = connection.connect();
                 String sql = "select sald_deb from debito where num_tar = ?";
                 PreparedStatement pst = cx.prepareStatement(sql);
@@ -51,13 +57,6 @@ public class movimientos {
                     if (retirar > saldo_ac) {
                         System.out.println("No se puede retirar más dinero del que tiene en su cuenta.");
                     } else {
-                        flag = false;
-                        do {
-                            System.out.print("Para continuar con la operación, ingrese su pin: ");
-                            pin = sc.nextLine();
-                            flag = v.validarPin(pin, num_tar);
-                        } while (flag == false);
-                        
                         sql = "update debito set sald_deb = ? where num_tar = ?";
                         pst = cx.prepareStatement(sql);
                         pst.setDouble(1, saldo_ac - retirar);
@@ -70,19 +69,19 @@ public class movimientos {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        
+
                         sql = "select fond_term from terminal";
                         pst = cx.prepareStatement(sql);
                         rs = pst.executeQuery();
                         while (rs.next()) {
                             dinero = rs.getDouble("fond_term");
                         }
-                        
+
                         sql = "update terminal set fond_term = ?";
                         pst = cx.prepareStatement(sql);
-                        pst.setDouble(1, dinero-retirar);
+                        pst.setDouble(1, dinero - retirar);
                         pst.executeUpdate();
-                        
+
                         LocalDateTime fechaActual = LocalDateTime.now();
                         String idMov = f.generarCadena();
                         sql = "insert into movimiento (id_mov,tipo_mov,mont_mov,fch_mov,num_tar) values (?,?,?,?,?)";
