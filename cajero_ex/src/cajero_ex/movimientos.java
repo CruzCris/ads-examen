@@ -21,7 +21,7 @@ public class movimientos {
     validaciones v = new validaciones();
     funciones f = new funciones();
     boolean flag = false;
-    double saldo_ac = 0, retirar = 0;
+    double saldo_ac = 0, retirar = 0, dinero = 0;
     String pin = "";
 
     boolean retiro(String num_tar) {
@@ -70,6 +70,18 @@ public class movimientos {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
+                        
+                        sql = "select fond_term from terminal";
+                        pst = cx.prepareStatement(sql);
+                        rs = pst.executeQuery();
+                        while (rs.next()) {
+                            dinero = rs.getDouble("fond_term");
+                        }
+                        
+                        sql = "update terminal set fond_term = ?";
+                        pst = cx.prepareStatement(sql);
+                        pst.setDouble(1, dinero-retirar);
+                        pst.executeUpdate();
                         
                         LocalDateTime fechaActual = LocalDateTime.now();
                         String idMov = f.generarCadena();
