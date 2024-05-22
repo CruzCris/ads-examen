@@ -1,16 +1,15 @@
--- MySQL dump 10.13  Distrib 8.0.22, for macos10.15 (x86_64)
+CREATE DATABASE  IF NOT EXISTS `cajero_examen` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `cajero_examen`;
+-- MySQL dump 10.13  Distrib 8.0.24, for Win64 (x86_64)
 --
--- Host: localhost    Database: cajeroex
+-- Host: localhost    Database: cajero_examen
 -- ------------------------------------------------------
--- Server version	8.0.22
-
-create database cajero_examen;
-use cajero_examen;
+-- Server version	5.7.34-log
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
+/*!50503 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -26,8 +25,8 @@ DROP TABLE IF EXISTS `cred_corte`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `cred_corte` (
-  `id_cc` int NOT NULL AUTO_INCREMENT,
-  `id_cred` int NOT NULL,
+  `id_cc` int(11) NOT NULL AUTO_INCREMENT,
+  `id_cred` int(11) NOT NULL,
   `fchco_cc` date NOT NULL,
   `min_cc` decimal(10,2) NOT NULL,
   `pagd_cc` decimal(10,2) NOT NULL,
@@ -54,7 +53,7 @@ DROP TABLE IF EXISTS `credito`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `credito` (
-  `id_cred` int NOT NULL AUTO_INCREMENT,
+  `id_cred` int(11) NOT NULL AUTO_INCREMENT,
   `crds_cred` decimal(10,2) NOT NULL,
   `sald_cred` decimal(10,2) NOT NULL DEFAULT '0.00',
   `pgmin_cred` decimal(10,2) NOT NULL,
@@ -82,7 +81,7 @@ DROP TABLE IF EXISTS `debito`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `debito` (
-  `id_deb` int NOT NULL AUTO_INCREMENT,
+  `id_deb` int(11) NOT NULL AUTO_INCREMENT,
   `sald_deb` decimal(10,2) DEFAULT '0.00',
   `num_tar` varchar(16) NOT NULL,
   PRIMARY KEY (`id_deb`),
@@ -108,7 +107,7 @@ DROP TABLE IF EXISTS `deposito`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `deposito` (
-  `id_dep` int NOT NULL AUTO_INCREMENT,
+  `id_dep` int(11) NOT NULL AUTO_INCREMENT,
   `id_movE` varchar(50) NOT NULL,
   `id_movR` varchar(50) NOT NULL,
   PRIMARY KEY (`id_dep`),
@@ -153,6 +152,7 @@ CREATE TABLE `movimiento` (
 
 LOCK TABLES `movimiento` WRITE;
 /*!40000 ALTER TABLE `movimiento` DISABLE KEYS */;
+INSERT INTO `movimiento` VALUES ('1','s',200.00,'2024-05-20 23:35:00','1234567890123456'),('HoHYx','s',400.00,'2024-05-21 01:12:45','1234567890123456'),('k9aPb','s',500.00,'2024-05-21 01:37:49','1234567890123456'),('U4lPl','s',300.00,'2024-05-21 01:20:19','1212121212121212');
 /*!40000 ALTER TABLE `movimiento` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -164,9 +164,9 @@ DROP TABLE IF EXISTS `pag_credito`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pag_credito` (
-  `id_pc` int NOT NULL AUTO_INCREMENT,
+  `id_pc` int(11) NOT NULL AUTO_INCREMENT,
   `id_mov` varchar(50) NOT NULL,
-  `id_cc` int NOT NULL,
+  `id_cc` int(11) NOT NULL,
   PRIMARY KEY (`id_pc`),
   KEY `id_mov_pc` (`id_mov`),
   KEY `id_cc_pg` (`id_cc`),
@@ -192,16 +192,16 @@ DROP TABLE IF EXISTS `pag_servicio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `pag_servicio` (
-  `id_pg` int NOT NULL AUTO_INCREMENT,
+  `id_pg` int(11) NOT NULL AUTO_INCREMENT,
   `id_mov` varchar(50) NOT NULL,
-  `id_serv` int NOT NULL,
+  `id_serv` int(11) NOT NULL,
   `ref_pg` varchar(100) NOT NULL,
   PRIMARY KEY (`id_pg`),
   KEY `id_mov_pg` (`id_mov`),
   KEY `id_serv_pg` (`id_serv`),
   CONSTRAINT `id_mov_pg` FOREIGN KEY (`id_mov`) REFERENCES `movimiento` (`id_mov`) ON UPDATE CASCADE,
   CONSTRAINT `id_serv_pg` FOREIGN KEY (`id_serv`) REFERENCES `servicio` (`id_serv`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -210,6 +210,7 @@ CREATE TABLE `pag_servicio` (
 
 LOCK TABLES `pag_servicio` WRITE;
 /*!40000 ALTER TABLE `pag_servicio` DISABLE KEYS */;
+INSERT INTO `pag_servicio` VALUES (1,'1',2,'22222222222'),(2,'HoHYx',2,'6767676767'),(3,'U4lPl',3,'43434343434'),(4,'k9aPb',1,'7777788888');
 /*!40000 ALTER TABLE `pag_servicio` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -221,8 +222,8 @@ DROP TABLE IF EXISTS `retiro`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `retiro` (
-  `id_ret` int NOT NULL AUTO_INCREMENT,
-  `id_term` int NOT NULL DEFAULT '1',
+  `id_ret` int(11) NOT NULL AUTO_INCREMENT,
+  `id_term` int(11) NOT NULL DEFAULT '1',
   `id_mov` varchar(50) NOT NULL,
   PRIMARY KEY (`id_ret`),
   KEY `id_term_ret` (`id_term`),
@@ -249,10 +250,10 @@ DROP TABLE IF EXISTS `servicio`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `servicio` (
-  `id_serv` int NOT NULL AUTO_INCREMENT,
+  `id_serv` int(11) NOT NULL AUTO_INCREMENT,
   `nom_serv` varchar(50) NOT NULL,
   PRIMARY KEY (`id_serv`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -261,6 +262,7 @@ CREATE TABLE `servicio` (
 
 LOCK TABLES `servicio` WRITE;
 /*!40000 ALTER TABLE `servicio` DISABLE KEYS */;
+INSERT INTO `servicio` VALUES (1,'Agua'),(2,'Luz'),(3,'Gas');
 /*!40000 ALTER TABLE `servicio` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -276,7 +278,7 @@ CREATE TABLE `tarjeta` (
   `pin_tar` varchar(255) NOT NULL,
   `cad_tar` date NOT NULL,
   `tip_tar` varchar(1) NOT NULL,
-  `id_titu` int NOT NULL,
+  `id_titu` int(11) NOT NULL,
   PRIMARY KEY (`num_tar`),
   KEY `id_titu_tar` (`id_titu`),
   CONSTRAINT `id_titu_tar` FOREIGN KEY (`id_titu`) REFERENCES `titular` (`id_titu`) ON UPDATE CASCADE
@@ -289,6 +291,7 @@ CREATE TABLE `tarjeta` (
 
 LOCK TABLES `tarjeta` WRITE;
 /*!40000 ALTER TABLE `tarjeta` DISABLE KEYS */;
+INSERT INTO `tarjeta` VALUES ('0987654321098765','4321','2030-10-22','c',2),('1212121212121212','7890','2028-02-01','d',3),('1234567890123456','5678','2026-05-19','d',1);
 /*!40000 ALTER TABLE `tarjeta` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -300,7 +303,7 @@ DROP TABLE IF EXISTS `terminal`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `terminal` (
-  `id_term` int NOT NULL,
+  `id_term` int(11) NOT NULL,
   `fond_term` decimal(10,2) NOT NULL DEFAULT '100000.00',
   PRIMARY KEY (`id_term`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -312,7 +315,7 @@ CREATE TABLE `terminal` (
 
 LOCK TABLES `terminal` WRITE;
 /*!40000 ALTER TABLE `terminal` DISABLE KEYS */;
-INSERT INTO `terminal` VALUES (1,100000.00);
+INSERT INTO `terminal` VALUES (0,99900.00);
 /*!40000 ALTER TABLE `terminal` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -324,10 +327,10 @@ DROP TABLE IF EXISTS `titular`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `titular` (
-  `id_titu` int NOT NULL AUTO_INCREMENT,
+  `id_titu` int(11) NOT NULL AUTO_INCREMENT,
   `nom_titu` varchar(75) NOT NULL,
   PRIMARY KEY (`id_titu`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -336,8 +339,17 @@ CREATE TABLE `titular` (
 
 LOCK TABLES `titular` WRITE;
 /*!40000 ALTER TABLE `titular` DISABLE KEYS */;
+INSERT INTO `titular` VALUES (1,'Juan Carlos Perez Gonzalez'),(2,'Karen Amelia Jones West'),(3,'Joaquin Bayron Vela Gomez');
 /*!40000 ALTER TABLE `titular` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping events for database 'cajero_examen'
+--
+
+--
+-- Dumping routines for database 'cajero_examen'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -348,33 +360,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-05-19 13:42:06
-
-insert into titular (nom_titu) values('Juan Carlos Perez Gonzalez');
-insert into titular (nom_titu) values('Karen Amelia Jones West');
-insert into titular (nom_titu) values('Joaquin Bayron Vela Gomez');
-select * from titular;
-
-insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('1234567890123456','5678','2026-05-19','d',1);
-insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('0987654321098765','4321','2030-10-22','c',2);
-insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('3434343434343434','6815','2025-01-10','c',1);
-insert into tarjeta (num_tar, pin_tar, cad_tar, tip_tar, id_titu) values ('1212121212121212','7890','2028-02-01','d',3);
-select * from tarjeta where num_tar='1234567890123456' and pin_tar=5678;
-
-insert into debito (sald_deb,num_tar) values (238000,'1234567890123456');
-insert into debito (sald_deb,num_tar) values (120000,'1212121212121212');
-select * from debito;
-update debito set sald_deb=200 where id_deb=1;
-
-insert into servicio (nom_serv) values ('Agua');
-insert into servicio (nom_serv) values ('Luz');
-insert into servicio (nom_serv) values ('Gas');
-select * from servicio;
-
-insert into movimiento (id_mov,tipo_mov,mont_mov,fch_mov,num_tar) values ('1','s',200,'2024-05-20 23:35:00','1234567890123456');
-select * from movimiento;
-
-insert into pag_servicio (id_mov,id_serv,ref_pg) values ('1',2,'22222222222');
-select * from pag_servicio;
-
-select * from terminal
+-- Dump completed on 2024-05-21  0:57:31
